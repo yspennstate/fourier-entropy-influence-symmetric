@@ -60,9 +60,9 @@ def main():
     upperI=sm+next_term/(1-ratio)
     B=iv.exp(-10)*upperI
     bound=(tail+pt('5.53')-pt('5.46')/2+pt('1.78')*B)/iv.ln(2)
-    out=dict(cells=len(nodes)-1,min_cell_slack=worst,worst_cell=where,
-             small_endpoint_slack_lower=float(small_slack.a),gamma_upper=float(gamma_upper.b),
-             bessel10_upper=float(B.b),tail_upper=float(tail.b),bound_bits_upper=float(bound.b),
+    out=dict(cells=len(nodes)-1,min_cell_slack=math.nextafter(worst,-math.inf),worst_cell=where,
+             small_endpoint_slack_lower=math.nextafter(float(small_slack.a),-math.inf),gamma_upper=math.nextafter(float(gamma_upper.b),math.inf),
+             bessel10_upper=math.nextafter(float(B.b),math.inf),tail_upper=math.nextafter(float(tail.b),math.inf),bound_bits_upper=math.nextafter(float(bound.b),math.inf),
              pointwise_majorant='E1(40x)+5.53-5.46x+1.78 exp(-20x)',
              status='outward-interval certificate; continuum moment constraints required')
     assert float(bound.b)<4.637

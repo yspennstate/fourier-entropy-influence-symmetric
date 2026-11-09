@@ -25,12 +25,31 @@ def report(name, ok, detail=""):
 
 
 # 1. The constants.
-C_L = mp.log(4 + mp.e, 2)
+C_L0 = mp.log(4 + mp.e, 2)  # Lemma 3.1
+C_L = mp.mpf(673) / 250     # Lemma 3.2
 C_B = 2 + 1 / mp.log(2)
 C = C_L + C_B
-report("log2(4+e) = 2.748092...", abs(C_L - mp.mpf("2.7480923172")) < 1e-9, mp.nstr(C_L, 20))
+report("log2(4+e) = 2.748092...", abs(C_L0 - mp.mpf("2.7480923172")) < 1e-9, mp.nstr(C_L0, 20))
 report("2 + 1/ln 2 = 3.442695...", abs(C_B - mp.mpf("3.4426950409")) < 1e-9, mp.nstr(C_B, 20))
-report("total constant 6.190787358...", abs(C - mp.mpf("6.19078735804398180070921818967")) < 1e-25, mp.nstr(C, 30))
+report("total constant 673/250 + 2 + 1/ln 2 = 6.134695041...",
+       abs(C - mp.mpf("6.13469504088896340735992468100189")) < 1e-25 and C < mp.mpf("6.1347"), mp.nstr(C, 30))
+
+
+# 1b. Lemma 3.2: F(p) < 2.692 on a grid (the proof is the interval certificate), and the two end cases.
+def F_lvl(p, r):
+    e = 4 * p * (1 - p)
+    h = -e * mp.log(e) - (1 - e) * mp.log(1 - e)
+    return mp.log(r, 2) + (h - e * mp.log(r - 1)) / (2 * p * mp.log(1 / p))
+
+
+r = mp.mpf(147) / 100
+grid = max(F_lvl(mp.mpf(2) ** (-(1 + 59 * mp.mpf(i) / 3000)), r) for i in range(1, 3001))  # q = 1 (p = 1/2) gives 0 log 0; F there is 1.645
+report("Lemma 3.2: max F(p) on a grid of q = log2(1/p) in [1, 60] < 2.692", grid < C_L, mp.nstr(grid, 12))
+end1 = mp.log(r, 2) + 1 - mp.log(r - 1, 2)
+c32 = 1 - mp.log(4) - mp.log(1 - mp.mpf(2) ** -32) - mp.log(r - 1)
+end2 = mp.log(r, 2) + 2 + 2 * c32 / (32 * mp.log(2))
+report("Lemma 3.2 end cases: 2.646 and 2.590", end1 < mp.mpf("2.646") and end2 < mp.mpf("2.590"),
+       "%s %s" % (mp.nstr(end1, 8), mp.nstr(end2, 8)))
 
 
 # 2. C_N < ln 4 for the envelope integral, with F(x) = exp(-x) I_0(x).
@@ -118,7 +137,7 @@ report("each n = 2..%d: max H/I equals the AND/OR value" % NMAX,
            for n in range(2, NMAX + 1)))
 report("all symmetric f, n <= %d: max H/I < 4, attained by AND/OR" % NMAX,
        worst_ratio[0] < 4 and (p0.count(-1) in (1, n0)), "max %.12f at n=%d" % (worst_ratio[0], n0))
-report("all symmetric f, n <= %d: L <= log2(4+e) I" % NMAX, worst_L <= float(C_L), "max L/I %.6f" % worst_L)
+report("all symmetric f, n <= %d: L <= 2.692 I" % NMAX, worst_L <= float(C_L), "max L/I %.6f" % worst_L)
 report("all symmetric f, n <= %d: B <= (2+1/ln2) I" % NMAX, worst_B <= float(C_B), "max B/I %.6f" % worst_B)
 or3 = 12 - 4.5 * log2(3)
 report("restriction step: max Delta_1/I_1 = 12 - (9/2) log2 3 at n=3",
